@@ -39,3 +39,7 @@ htmlcov/
 .vscode/
 *.swp
 *~
+
+# Test output artifacts
+tests/data/*_classified.*
+tests/data/*_dtm.*

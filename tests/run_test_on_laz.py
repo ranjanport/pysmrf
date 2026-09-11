@@ -9,6 +9,7 @@ Or invoked via pytest:
 from __future__ import annotations
 
 from pathlib import Path
+import shutil
 import sys
 import tempfile
 import time
@@ -31,11 +32,12 @@ from pysmrf.morphology import disk_footprint, progressive_filter, tiled_morpholo
 
 
 DATA_DIR = Path(__file__).parent / "data"
-LAZ_FILES = sorted(list(DATA_DIR.glob("*.laz")))
+# Discover all input LAZ files, ignoring already classified output files
+LAZ_FILES = sorted([f for f in DATA_DIR.glob("*.laz") if not f.stem.endswith("_classified")])
 
 
 def get_laz_files():
-    """Return all available LAZ files in tests/data."""
+    """Return all available input LAZ files in tests/data."""
     return LAZ_FILES
 
 
@@ -91,8 +93,6 @@ def test_laz_morphology_parallel(laz_path: Path):
     """Test 3: Verify bitwise equivalence between serial and multi-threaded parallel morphology."""
     x, y, z, _ = read_point_cloud(laz_path)
     dem, _ = create_dem(x, y, z, cellsize=1.0, bin_type="min", inpaint=True)
-
-    footprint = disk_footprint(3)
 
     # Serial opening
     t0 = time.perf_counter()
@@ -188,19 +188,22 @@ def test_laz_legacy_smrf(laz_path: Path):
 
 @pytest.mark.skipif(len(LAZ_FILES) == 0, reason="No .laz files found in tests/data/")
 @pytest.mark.parametrize("laz_path", LAZ_FILES, ids=lambda p: p.name)
-def test_laz_export_roundtrip(laz_path: Path):
-    """Test 7: Export classified points and bare-earth DEM to GeoTIFF and LAS."""
+def test_laz_export_roundtrip(laz_path: Path, output_dir: Path | None = None):
+    """Test 7: Export classified points and bare-earth DEM to GeoTIFF and LAS/LAZ."""
     result = classify(
         laz_path,
-        cellsize=2.0,
-        windows=6,
+        cellsize=1.0,
+        windows=10,
         slope_threshold=0.15,
         workers=4,
     )
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        dem_path = Path(tmpdir) / "output_dem.tif"
-        las_path = Path(tmpdir) / "output_classified.las"
+    is_temp = output_dir is None
+    dest_dir = Path(output_dir) if output_dir else Path(tempfile.mkdtemp())
+
+    try:
+        dem_path = dest_dir / f"{laz_path.stem}_dtm.tif"
+        las_path = dest_dir / f"{laz_path.stem}_classified.laz"
 
         # 1. Save and verify GeoTIFF
         result.save_dem(dem_path)
@@ -210,7 +213,7 @@ def test_laz_export_roundtrip(laz_path: Path):
             assert dem_read.shape == result.dtm.shape
             assert src.res == (result.cellsize, result.cellsize)
 
-        # 2. Save and verify classified LAS
+        # 2. Save and verify classified LAZ
         result.save_las(las_path, source_las_path=laz_path)
         assert las_path.exists()
 
@@ -221,21 +224,28 @@ def test_laz_export_roundtrip(laz_path: Path):
         assert unique_classes.issubset({1, 2})
         assert 2 in unique_classes  # Ground points present
 
-        print(f"\n[PASS] test_laz_export_roundtrip ({laz_path.name}): Exported DEM ({dem_path.stat().st_size} bytes) and LAS ({las_path.stat().st_size:,} bytes)")
+        print(f"\n[PASS] test_laz_export_roundtrip ({laz_path.name}):")
+        print(f"       Classified LAZ: {las_path} ({las_path.stat().st_size:,} bytes)")
+        print(f"       Bare-earth DTM: {dem_path} ({dem_path.stat().st_size:,} bytes)")
+    finally:
+        if is_temp and dest_dir.exists():
+            shutil.rmtree(dest_dir, ignore_errors=True)
 
 
-def run_all_laz_tests():
-    """Run all tests programmatically and print summary."""
+def run_all_laz_tests(persistent_outputs: bool = True):
+    """Run all tests programmatically, optionally persisting classified LAZ and GeoTIFF DTM."""
     print("=" * 70)
     print("           PySMRF Comprehensive LAZ Point Cloud Test Suite")
     print("=" * 70)
 
     if not LAZ_FILES:
-        print(f"Error: No .laz files found in {DATA_DIR}")
+        print(f"Error: No input .laz files found in {DATA_DIR}")
         return 1
 
+    out_dir = DATA_DIR if persistent_outputs else None
+
     for laz_file in LAZ_FILES:
-        print(f"\nTarget dataset: {laz_file} ({laz_file.stat().st_size / (1024*1024):.2f} MB)")
+        print(f"\nTarget dataset: {laz_file.name} ({laz_file.stat().st_size / (1024*1024):.2f} MB)")
         tests = [
             ("LAZ Point Cloud I/O", test_laz_reading),
             ("Vectorized DEM Gridding", test_laz_gridding),
@@ -243,11 +253,10 @@ def run_all_laz_tests():
             ("Functional Classify Pipeline", test_laz_classify_pipeline),
             ("Object-Oriented SMRF Pipeline", test_laz_oop_pipeline),
             ("Legacy SMRF Compatibility", test_laz_legacy_smrf),
-            ("GeoTIFF & LAS Export Roundtrip", test_laz_export_roundtrip),
+            ("GeoTIFF & LAS Export Roundtrip", lambda p: test_laz_export_roundtrip(p, output_dir=out_dir)),
         ]
 
         for name, test_fn in tests:
-            t0 = time.perf_counter()
             try:
                 test_fn(laz_file)
             except Exception as e:
@@ -258,9 +267,11 @@ def run_all_laz_tests():
 
     print("\n" + "=" * 70)
     print("               ALL LAZ TEST CASES PASSED SUCCESSFULLY!")
+    if persistent_outputs:
+        print(f" Outputs saved in: {DATA_DIR}")
     print("=" * 70)
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(run_all_laz_tests())
+    sys.exit(run_all_laz_tests(persistent_outputs=True))
