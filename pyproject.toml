@@ -68,8 +68,9 @@ Repository = "https://github.com/thomaspingel/smrf"
 pysmrf = "pysmrf.cli:cli"
 
 [tool.setuptools.packages.find]
+where = ["src"]
 include = ["pysmrf*"]
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = ["src"]
 testpaths = ["tests"]

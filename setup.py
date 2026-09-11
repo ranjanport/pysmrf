@@ -22,7 +22,8 @@ setup(
     author="Thomas Pingel (original algorithm); PySMRF Contributors",
     author_email="thomas.pingel@gmail.com",
     license="MIT",
-    packages=find_packages(include=["pysmrf", "pysmrf.*"]),
+    package_dir={"": "src"},
+    packages=find_packages(where="src"),
     python_requires=">=3.9",
     install_requires=[
         "numpy>=1.22.0",
@@ -56,7 +57,6 @@ setup(
         "Topic :: Scientific/Engineering :: Image Processing",
         "Intended Audience :: Science/Research",
         "Operating System :: OS Independent",
-        "License :: OSI Approved :: MIT License",
     ],
     keywords="GIS lidar remote-sensing morphological-filter DEM DTM ground-classification parallelism",
 )
