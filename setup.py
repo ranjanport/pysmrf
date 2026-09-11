@@ -31,13 +31,14 @@ setup(
         "rasterio>=1.3.0",
         "pandas>=1.4.0",
         "laspy>=2.0.0",
+        "lazrs>=0.5.0",
         "click>=8.0.0",
     ],
     extras_require={
         "laz": ["lazrs>=0.5.0"],
         "viz": ["matplotlib>=3.5.0"],
         "all": ["lazrs>=0.5.0", "matplotlib>=3.5.0", "scikit-image>=0.19.0"],
-        "dev": ["pytest>=7.0.0", "pytest-cov>=4.0.0"],
+        "dev": ["pytest>=7.0.0", "pytest-cov>=4.0.0", "lazrs>=0.5.0"],
     },
     entry_points={
         "console_scripts": [

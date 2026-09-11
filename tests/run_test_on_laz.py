@@ -31,9 +31,32 @@ from pysmrf import (
 from pysmrf.morphology import disk_footprint, progressive_filter, tiled_morphological_opening
 
 
+def _has_laz_backend() -> bool:
+    """Check whether a LAZ decompression backend is available."""
+    try:
+        import laspy
+        import lazrs  # noqa: F401
+        return True
+    except ImportError:
+        pass
+    try:
+        import laszip  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
 DATA_DIR = Path(__file__).parent / "data"
 # Discover all input LAZ files, ignoring already classified output files
 LAZ_FILES = sorted([f for f in DATA_DIR.glob("*.laz") if not f.stem.endswith("_classified")])
+HAS_LAZ_BACKEND = _has_laz_backend()
+
+SKIP_LAZ = (len(LAZ_FILES) == 0) or (not HAS_LAZ_BACKEND)
+SKIP_REASON = (
+    "No .laz files found in tests/data/"
+    if len(LAZ_FILES) == 0
+    else ("No LAZ decompression backend (lazrs or laszip) installed" if not HAS_LAZ_BACKEND else "")
+)
 
 
 def get_laz_files():
@@ -41,7 +64,7 @@ def get_laz_files():
     return LAZ_FILES
 
 
-@pytest.mark.skipif(len(LAZ_FILES) == 0, reason="No .laz files found in tests/data/")
+@pytest.mark.skipif(SKIP_LAZ, reason=SKIP_REASON)
 @pytest.mark.parametrize("laz_path", LAZ_FILES, ids=lambda p: p.name)
 def test_laz_reading(laz_path: Path):
     """Test 1: Read compressed LAZ file and verify coordinates & metadata."""
@@ -61,7 +84,7 @@ def test_laz_reading(laz_path: Path):
     print(f"\n[PASS] test_laz_reading ({laz_path.name}): {len(x):,} points loaded in {elapsed:.3f}s")
 
 
-@pytest.mark.skipif(len(LAZ_FILES) == 0, reason="No .laz files found in tests/data/")
+@pytest.mark.skipif(SKIP_LAZ, reason=SKIP_REASON)
 @pytest.mark.parametrize("laz_path", LAZ_FILES, ids=lambda p: p.name)
 def test_laz_gridding(laz_path: Path):
     """Test 2: Test vectorized DEM gridding (min, mean, count) and void filling."""
@@ -87,7 +110,7 @@ def test_laz_gridding(laz_path: Path):
     print(f"\n[PASS] test_laz_gridding ({laz_path.name}): {dem_min.shape} grid generated in {grid_time:.4f}s")
 
 
-@pytest.mark.skipif(len(LAZ_FILES) == 0, reason="No .laz files found in tests/data/")
+@pytest.mark.skipif(SKIP_LAZ, reason=SKIP_REASON)
 @pytest.mark.parametrize("laz_path", LAZ_FILES, ids=lambda p: p.name)
 def test_laz_morphology_parallel(laz_path: Path):
     """Test 3: Verify bitwise equivalence between serial and multi-threaded parallel morphology."""
@@ -112,7 +135,7 @@ def test_laz_morphology_parallel(laz_path: Path):
     )
 
 
-@pytest.mark.skipif(len(LAZ_FILES) == 0, reason="No .laz files found in tests/data/")
+@pytest.mark.skipif(SKIP_LAZ, reason=SKIP_REASON)
 @pytest.mark.parametrize("laz_path", LAZ_FILES, ids=lambda p: p.name)
 def test_laz_classify_pipeline(laz_path: Path):
     """Test 4: Functional classify() pipeline on full LAZ dataset."""
@@ -143,7 +166,7 @@ def test_laz_classify_pipeline(laz_path: Path):
     )
 
 
-@pytest.mark.skipif(len(LAZ_FILES) == 0, reason="No .laz files found in tests/data/")
+@pytest.mark.skipif(SKIP_LAZ, reason=SKIP_REASON)
 @pytest.mark.parametrize("laz_path", LAZ_FILES, ids=lambda p: p.name)
 def test_laz_oop_pipeline(laz_path: Path):
     """Test 5: OOP SMRF class pipeline on full LAZ dataset."""
@@ -161,7 +184,7 @@ def test_laz_oop_pipeline(laz_path: Path):
     print(f"\n[PASS] test_laz_oop_pipeline ({laz_path.name}): SMRF class execution successful")
 
 
-@pytest.mark.skipif(len(LAZ_FILES) == 0, reason="No .laz files found in tests/data/")
+@pytest.mark.skipif(SKIP_LAZ, reason=SKIP_REASON)
 @pytest.mark.parametrize("laz_path", LAZ_FILES, ids=lambda p: p.name)
 def test_laz_legacy_smrf(laz_path: Path):
     """Test 6: Legacy smrf() function compatibility on subsampled LAZ points."""
@@ -186,7 +209,7 @@ def test_laz_legacy_smrf(laz_path: Path):
     print(f"\n[PASS] test_laz_legacy_smrf ({laz_path.name}): Legacy interface verified on {len(xs):,} points")
 
 
-@pytest.mark.skipif(len(LAZ_FILES) == 0, reason="No .laz files found in tests/data/")
+@pytest.mark.skipif(SKIP_LAZ, reason=SKIP_REASON)
 @pytest.mark.parametrize("laz_path", LAZ_FILES, ids=lambda p: p.name)
 def test_laz_export_roundtrip(laz_path: Path, output_dir: Path | None = None):
     """Test 7: Export classified points and bare-earth DEM to GeoTIFF and LAS/LAZ."""
@@ -237,6 +260,12 @@ def run_all_laz_tests(persistent_outputs: bool = True):
     print("=" * 70)
     print("           PySMRF Comprehensive LAZ Point Cloud Test Suite")
     print("=" * 70)
+
+    if not HAS_LAZ_BACKEND:
+        print("WARNING: No LAZ decompression backend (lazrs or laszip) is installed.")
+        print("Install with: pip install lazrs")
+        print("Skipping LAZ decompression tests.")
+        return 0
 
     if not LAZ_FILES:
         print(f"Error: No input .laz files found in {DATA_DIR}")
