@@ -136,6 +136,16 @@ class FilterResult:
         return int(np.sum(self.is_object))
 
     @property
+    def cellsize(self) -> float:
+        """Grid cell size (spatial resolution) extracted from affine transform."""
+        return float(abs(self.transform.a))
+
+    @property
+    def dtm(self) -> np.ndarray:
+        """Alias for dem (Digital Terrain Model / Bare-earth surface)."""
+        return self.dem
+
+    @property
     def ground_percentage(self) -> float:
         """Percentage of points classified as ground."""
         return (self.ground_count / self.num_points) * 100.0 if self.num_points > 0 else 0.0
@@ -171,9 +181,9 @@ class FilterResult:
     def save_las(
         self,
         filepath: Union[str, Path],
-        x: np.ndarray,
-        y: np.ndarray,
-        z: np.ndarray,
+        x: Optional[np.ndarray] = None,
+        y: Optional[np.ndarray] = None,
+        z: Optional[np.ndarray] = None,
         source_las_path: Optional[Union[str, Path]] = None,
     ) -> None:
         """Export the point cloud with updated classification to a LAS/LAZ file."""

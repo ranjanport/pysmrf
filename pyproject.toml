@@ -71,5 +71,5 @@ where = ["src"]
 include = ["pysmrf*"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["src", "tests"]
 testpaths = ["tests"]

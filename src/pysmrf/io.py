@@ -34,6 +34,12 @@ def read_las(filename: Union[str, Path]) -> Tuple[Dict[str, Any], Any]:
         import pandas as pd
 
         las = laspy.read(str(filename))
+        crs = None
+        try:
+            crs = las.header.parse_crs()
+        except Exception:
+            crs = None
+
         header = {
             "version": float(f"{las.header.version.major}.{las.header.version.minor}"),
             "point_format_id": las.header.point_format.id,
@@ -48,7 +54,7 @@ def read_las(filename: Union[str, Path]) -> Tuple[Dict[str, Any], Any]:
                 las.header.z_max,
                 las.header.z_min,
             ],
-            "crs": las.header.parse_crs(),
+            "crs": crs,
         }
 
         # Convert to DataFrame
@@ -247,10 +253,10 @@ def write_geotiff(
 
 def write_classified_las(
     filepath: Union[str, Path],
-    x: np.ndarray,
-    y: np.ndarray,
-    z: np.ndarray,
-    classification: np.ndarray,
+    x: Optional[np.ndarray] = None,
+    y: Optional[np.ndarray] = None,
+    z: Optional[np.ndarray] = None,
+    classification: Optional[np.ndarray] = None,
     source_las_path: Optional[Union[str, Path]] = None,
 ) -> None:
     """Export points with SMRF classification (2=ground, 1=unassigned) to a LAS/LAZ file.
@@ -286,6 +292,8 @@ def write_classified_las(
         las.classification = np.asarray(classification, dtype=np.uint8)
         las.write(str(filepath))
     else:
+        if x is None or y is None or z is None:
+            raise ValueError("Coordinates x, y, z are required when source_las_path is not a LAS/LAZ file.")
         # Create fresh LAS file
         header = laspy.LasHeader(point_format=3, version="1.2")
         header.offsets = [float(np.min(x)), float(np.min(y)), float(np.min(z))]

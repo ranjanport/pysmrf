@@ -1,15 +1,37 @@
-"""End-to-end tests for SMRF classification on synthetic point clouds."""
+"""End-to-end tests for SMRF classification on synthetic point clouds and real LAZ files."""
 
+from pathlib import Path
 import numpy as np
 import pytest
 
 from pysmrf import SMRF, FilterResult, classify, smrf
+try:
+    from .run_test_on_laz import (
+        LAZ_FILES,
+        test_laz_classify_pipeline,
+        test_laz_export_roundtrip,
+        test_laz_gridding,
+        test_laz_legacy_smrf,
+        test_laz_morphology_parallel,
+        test_laz_oop_pipeline,
+        test_laz_reading,
+    )
+except (ImportError, ValueError):
+    from run_test_on_laz import (
+        LAZ_FILES,
+        test_laz_classify_pipeline,
+        test_laz_export_roundtrip,
+        test_laz_gridding,
+        test_laz_legacy_smrf,
+        test_laz_morphology_parallel,
+        test_laz_oop_pipeline,
+        test_laz_reading,
+    )
 
 
 @pytest.fixture
 def synthetic_scene():
     """Create a synthetic scene: a 50x50m flat ground with a 10x10m building (height=10m)
-
     and some scattered vegetation points.
     """
     np.random.seed(123)
