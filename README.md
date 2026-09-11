@@ -1,6 +1,6 @@
 # PySMRF: High-Performance Parallel Simple Morphological Filter for LiDAR
 
-[![Python Version](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](https://www.python.org/)
+[![Python Version](https://img.shields.io/badge/python-3.9%20|%203.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![DOI](https://img.shields.io/badge/DOI-10.1016%2Fj.isprsjprs.2012.12.002-blue.svg)](https://doi.org/10.1016/j.isprsjprs.2012.12.002)
 
