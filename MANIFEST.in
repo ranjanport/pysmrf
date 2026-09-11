@@ -2,7 +2,6 @@ include README.md
 include LICENSE
 include CITATION.cff
 include pyproject.toml
-include setup.py
 recursive-include src/pysmrf *.py
 recursive-include tests *.py
 global-exclude __pycache__
