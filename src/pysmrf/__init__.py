@@ -20,7 +20,8 @@ And the software implementation:
 from __future__ import annotations
 
 __version__ = "2.0.0"
-__author__ = "Thomas Pingel (original algorithm); PySMRF Contributors"
+__author__ = "Aman Ranjan; Thomas Pingel (original algorithm)"
+__email__ = "er.amanranjan@gmail.com"
 __license__ = "MIT"
 __doi__ = "10.1016/j.isprsjprs.2012.12.002"
 
