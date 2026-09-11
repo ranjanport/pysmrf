@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pysmrf"
-version = "1.0.0"
+dynamic = ["version"]
 description = "High-performance parallel Simple Morphological Filter (SMRF) for LiDAR ground classification and DEM generation citing Pingel et al. (2013)"
 readme = "README.md"
 license = "MIT"
@@ -63,6 +63,9 @@ Repository = "https://github.com/ranjanport/pysmrf"
 
 [project.scripts]
 pysmrf = "pysmrf.cli:cli"
+
+[tool.setuptools.dynamic]
+version = {attr = "pysmrf.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["src"]

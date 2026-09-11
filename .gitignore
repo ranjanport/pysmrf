@@ -43,3 +43,4 @@ htmlcov/
 # Test output artifacts
 tests/data/*_classified.*
 tests/data/*_dtm.*
+uv.lock

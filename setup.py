@@ -7,14 +7,28 @@ Cites:
     https://doi.org/10.1016/j.isprsjprs.2012.12.002
 """
 
+from pathlib import Path
+import re
 from setuptools import find_packages, setup
+
+
+def get_version() -> str:
+    """Extract __version__ dynamically from src/pysmrf/__init__.py."""
+    init_path = Path(__file__).parent / "src" / "pysmrf" / "__init__.py"
+    with open(init_path, "r", encoding="utf-8") as fh:
+        content = fh.read()
+    match = re.search(r'^__version__\s*=\s*[\'"]([^\'"]+)[\'"]', content, re.MULTILINE)
+    if not match:
+        raise RuntimeError("Unable to find __version__ string in src/pysmrf/__init__.py")
+    return match.group(1)
+
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
     name="pysmrf",
-    version="1.0.0",
+    version=get_version(),
     description="High-performance parallel Simple Morphological Filter (SMRF) for LiDAR ground classification citing Pingel et al. (2013)",
     long_description=long_description,
     long_description_content_type="text/markdown",

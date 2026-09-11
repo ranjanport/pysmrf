@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this software in your research, please cite both the foundational paper and this library."
 title: "PySMRF: High-Performance Parallel Simple Morphological Filter for LiDAR Point Clouds"
-version: 1.0.0
+version: 1.0.1
 date-released: 2026-09-11
 license: MIT
 repository-code: "https://github.com/thomaspingel/smrf"
