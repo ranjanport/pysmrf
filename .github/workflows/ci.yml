@@ -55,12 +55,3 @@ jobs:
 
       - name: Check package metadata with twine
         run: twine check dist/*
-
-  publish:
-    name: Auto-publish to PyPI
-    needs: [test, build_check]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    uses: ./.github/workflows/publish.yml
-    permissions:
-      id-token: write
-      contents: read
