@@ -14,7 +14,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="pysmrf",
-    version="2.0.0",
+    version="1.0.0",
     description="High-performance parallel Simple Morphological Filter (SMRF) for LiDAR ground classification citing Pingel et al. (2013)",
     long_description=long_description,
     long_description_content_type="text/markdown",

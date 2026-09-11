@@ -208,11 +208,11 @@ pytest -v tests/
 This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
 
 Original Algorithm & Prototype Copyright (c) 2013–2021 Thomas Pingel.
-PySMRF Modern Rewrite Copyright (c) 2026 PySMRF Contributors.
+PySMRF Modern Rewrite Copyright (c) 2026 Aman Ranjan.
 
 ---
 
 ## 👤 Author & Maintainer
 
-- **Aman Ranjan** (<er.amanranjan@gmail.com>)
+- **Aman Ranjan** ([er.amanranjan@gmail.com](mailto:er.amanranjan@gmail.com))
 - **Thomas J. Pingel** (Original Algorithm & Prototype)
